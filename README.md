@@ -1,10 +1,10 @@
 # OnionRouting2
 
 
-# Introduksjon
+## Introduksjon
 I dette prosjektet ble vi bedt om å implementere en Onion router. Poenget med onion router er at meldingen blir sendt mellom flere forksjellige noder før den når fram til målet sitt. Meldingen blir kryptert en gang for hver node. Når noden dekrypterer meldingen den får, vil den få instrukser over hvor neste node den skal sendes til. Resten av meldingen vil være kryptert, og vil bli dekryptert av neste node. På denne måten vil ikke nodene vite start og slutt node som man kan med http og https. Istedenfor vil nodene bare vite forrige og neste node. Ettersom jeg jobbet alene og ikke hadde kjempelang tid, er produktet mer av et proof of concept enn et polert produkt. Likevel har produktet flere deler av den basice funksjonaliten som man kan ønske av en onion router.
 
-# Funksjonalitet og oppsett
+## Funksjonalitet og oppsett
 Javafilene i programmet kan deles inn i fire hoveddeler:
 1. Nodeklassene:
 Det er tre klasser som sender meldinger til hverandre: OnionServer, OnionClient, og OnionNode. OnionClient er klient programmet og er programmet som gjør forespørselene til brukeren. OnionServer er programmet som simulerer en server som brukeren kan koble til. Det er i tillegg serveren som sender forespørsler ut på internettet. OnionNode er nodene som meldingene mellom OnionServer og OnionClient. Det er mange OnionNodes som kjører samtidig, slik at det er mange forskjellige ruter meldingene kan ta.
@@ -15,13 +15,24 @@ Mainklassen OnionMain setter opp nodene, og setter så opp klienten og serveren,
 4. Enumeratorklasse:
 Alle meldingene som blir sendt i produktet starter med en byte som signifiserer hvilke type melding det er. F.eks. nøkkelbytte, serverforespørsel, webforespørsel eller oppdelt svar. MessageNode er en enumerator som gir navn til de forskjellige byte-verdiene. Produktet hadde funket uten denne klassen, men å ha den med gjør at programmene blir lettere å skrive og lese da man ikke trenger å huske hvilken byte-verdi som var server forespørsel og hvilken som var web-forespørsel.
 
-# Avhengigheter
+Kommentarer til diverse deler av produktet.
 
-# Instruksjoner
+## Avhengigheter
+Når det gjelder pakker som jeg importerer bruker jeg java.crypto og java.security for krypteringen. java.net bruker jeg for å sende forespørseler på nettet og java.util gir meg diverse andre funksjonaliteter som Arraylist.
 
-# Fremtidig arbeid
+## Instruksjoner
+For å bruke programme kjører man javafilen OnionMain. Da vil klient, server og node settes opp, og klienten og serveren vil få tak i nøklene til nodene. Etter det er ferdig sendes en testmelding til serveren og serveren svarer med samme melding og man får opp "Success!". Så kommer man inn i loopen til programmet.
+Man har her tre alternativer:
+1: Echo server
+2: Web server
+3: Terminate
+Hvis man trykker 1 vil man bruke echo serveren. Da vil man få sjansen til å skrive inn en linje som blir sendt til serveren. Serveren vil så herme og sende tilbake samme melding.
+Hvis man trykker 2 bil man bruke web serveren. Da vil man kunne skrive inn en url, som blir sendt til serveren. Serveren kjører da forespørselen og man vil få tilbake svaret på en lang tekst streng til klienten. Merk at hvis responsen er på over 256 000 bytes, vil man få en error. (Se fremtidig arbeid for årsak og mulige løsninger). url-en https://www.google.com er et eksempel på en url som fungerer.
+Hvis man trykker 3 (eller noe annet enn 1 eller 2) vil klienten avsluttes.
 
-# Lenke til Repo
+## Fremtidig arbeid
+
+## Lenke til Repo
 Lenke til Github repo: https://github.com/biasedLiar/OnionRouting2
 I repoen kan man ikke se de tidligste committene. 
 Det er fordi jeg lagde originalt prosjekt inni en annen repo. Problemet var at jeg med et uhell valgte feil mappe some root, så resultatet ble at det var to forskjellige prosjekter i samme repo. Når jeg oppdaget problemet flyttet jeg filene til en ny mappe og lagde en ny repo. Hvis man er interressert i å se på selve utviklingen av prosjektet, kan man finne det i repoen: https://github.com/biasedLiar/OnionRouting
