@@ -64,7 +64,7 @@ Når det gjelder pakker som jeg importerer bruker jeg java.crypto og java.securi
 
 ## Instruksjoner
 For å bruke programme kjører man javafilen OnionMain. Da vil klient, server og node settes opp, og klienten og serveren vil få tak i nøklene til nodene. Etter det er ferdig sendes en testmelding til serveren og serveren svarer med samme melding og man får opp "Success!". Så kommer man inn i loopen til programmet.
-Man har her tre alternativer:
+Man har her tre alternativer:  
 1: Echo server  
 2: Web server    
 3: Terminate  
@@ -76,7 +76,10 @@ Hvis man trykker 3 (eller noe annet enn 1 eller 2) vil klienten avsluttes.
 ### Mangel på kryptering mellom klient og server
 Slik programmet er skrevet nå, er det ikke noe kryptering mellom klient og server. Det vil si at den siste noden før serveren kan i praksis lese hele meldingen. Dette er selvfølgelig ikke optimalt i program hvor hele poenget er at det skal være anonymt og hemmelig. Dette kan bli fikset relativt lett med å gi både klient og server sitt eget RSA nøkkelpar, og å la dem key-exchange med hverandre i starten av programmet. Å endre på dette er det første jeg hadde endret på hvis jeg hadde hatt mer tid.
 ### Problemer med for store meldinger   
-I og med at jeg bruker Datagram, takler den ikke altfor store meldinger. Derfor blir store responser fra werbrequest splittet opp i flere mindre deler. Måten det er implementert på nå er det en byte som representerer hvor mange deler requesten er splittet opp i. Det er da tydelig at hvis responsen er for stor, og meldingen blir splittet opp i flere enn 255 deler, så vil dette gå galt. Å fikse på dette er den andre tingen jeg hadde gjort hvis jeg skulle endre på noe. Dette kunne enten bli gjort ved å ha mer plass til å anngi anntall deler, eller ved å bruke en annen overføringmetode enn Datagram.
+I og med at jeg bruker Datagram, takler den ikke altfor store meldinger. Derfor blir store responser fra werbrequest splittet opp i flere mindre deler. Måten det er implementert på nå er det en byte som representerer hvor mange deler requesten er splittet opp i. Det er da tydelig at hvis responsen er for stor, og meldingen blir splittet opp i flere enn 255 deler, så vil dette gå galt. Å fikse på dette er den andre tingen jeg hadde gjort hvis jeg skulle endre på noe. Dette kunne enten bli gjort ved å ha mer plass til å anngi anntall deler, eller ved å bruke en annen overføringmetode enn Datagram.  
+
+### Stoppe alle noder + server og klient avslutter
+Ettersom programmet for øyeblikket ikke kommuniserer med eller blir kommunisert med fra andre maskiner, burde programmet egentlig avslutte nodene og serveren når klienten avslutter. Dette er ikke et stort problem, men det hadde vært greit å få fikset. 
 
 ### Legge opp for flere klienter og servere
 Slik programmet er nå kjører alle nodene og klienten+server på samme maskin. Men slik jeg har programmert det bør det ikke være vanskelig å tillate den med å bruke noder på andre maskiner. En måte å gjøre dette på er la brukeren skrive inn hvilke Ip-addresse den vil lete etter noder på, og å la brukeren skrive inn hvilke IP addresse + port den skal bruke når den sender melding til Server. En mer avansert måte hadde hatt et sett med noder som er permanent tilgjenelig på internettet som man kan bruke.
