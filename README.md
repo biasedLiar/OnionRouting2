@@ -65,6 +65,9 @@ Hver gang en melding sendes fra klient til server eller motsatt, blir det valgt 
 ## Avhengigheter
 Når det gjelder pakker som jeg importerer bruker jeg java.crypto og java.security for krypteringen. java.net bruker jeg for å sende forespørseler på nettet og java.util gir meg diverse andre funksjonaliteter som Arraylist.
 
+## Ekstern kode:
+Jeg har brukt kode fra diverse nettsider for å sette opp nøkler, og å kryptere. Jeg har lagt til lenke til kilden i kommentarer nær der jeg har lånt kode.
+
 ## Instruksjoner
 For å bruke programme kjører man javafilen OnionMain. Da vil klient, server og node settes opp, og klienten og serveren vil få tak i nøklene til nodene. Etter det er ferdig sendes en testmelding til serveren og serveren svarer med samme melding og man får opp "Success!". Så kommer man inn i loopen til programmet.
 Man har her tre alternativer:  
