@@ -78,11 +78,17 @@ Slik programmet er skrevet nå, er det ikke noe kryptering mellom klient og serv
 ### Problemer med for store meldinger   
 I og med at jeg bruker Datagram, takler den ikke altfor store meldinger. Derfor blir store responser fra werbrequest splittet opp i flere mindre deler. Måten det er implementert på nå er det en byte som representerer hvor mange deler requesten er splittet opp i. Det er da tydelig at hvis responsen er for stor, og meldingen blir splittet opp i flere enn 255 deler, så vil dette gå galt. Å fikse på dette er den andre tingen jeg hadde gjort hvis jeg skulle endre på noe. Dette kunne enten bli gjort ved å ha mer plass til å anngi anntall deler, eller ved å bruke en annen overføringmetode enn Datagram.  
 
-### Stoppe alle noder + server og klient avslutter
+### Stoppe alle noder + server når klient avslutter
 Ettersom programmet for øyeblikket ikke kommuniserer med eller blir kommunisert med fra andre maskiner, burde programmet egentlig avslutte nodene og serveren når klienten avslutter. Dette er ikke et stort problem, men det hadde vært greit å få fikset. 
+
+### La key exchange først sende ut mange requester og så ta imot svar.
+Slik det er nå vil serveren og klienten sende ut en request og så vente på svar fra requesten før den sender ut neste. Jeg mener det ville være mer effektivt at klienten og serveren først sender ut alle requestene sine, og så venter på svarene.
 
 ### Legge opp for flere klienter og servere
 Slik programmet er nå kjører alle nodene og klienten+server på samme maskin. Men slik jeg har programmert det bør det ikke være vanskelig å tillate den med å bruke noder på andre maskiner. En måte å gjøre dette på er la brukeren skrive inn hvilke Ip-addresse den vil lete etter noder på, og å la brukeren skrive inn hvilke IP addresse + port den skal bruke når den sender melding til Server. En mer avansert måte hadde hatt et sett med noder som er permanent tilgjenelig på internettet som man kan bruke.
+
+### Utvide serveren
+Utenom å være en webserver, så kan serveren bli programmert til å gjøre flere andre ting, som å inneholde en database eller kjøre et annet verktøy som man vil kunne kommunisere med anonymt.
 
 ### Sette opp egen router.
 Man kunne i teorien la klienten også være en server på localhost (eller legge det ut på internettet). Serveren vil da ta en Url som et JSON object, kjøre det anonymt, og så sende html responsen til nettleseren til brukeren, noe som på den måten lar brukeren bruke internettet anonymt. Dette er nok det vanskeligste ut av ideene til fremtidig arbeid og vil kreve en god del resurser, men det virker mulig.
