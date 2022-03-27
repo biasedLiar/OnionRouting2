@@ -19,6 +19,9 @@ Alle meldingene som blir sendt i produktet starter med en byte som signifiserer 
 ### Rom for utvidelse:  
 Selv om produktet bare har en server, en klient og alle noder er på samme IP, har jeg prøvd å programmere slik at man kan legge til flere klienter, servere og noder (bl.a. på andre maskiner) uten noen store endringer i koden. (Se fremtidig arbeid).  
   
+## Installasjon:
+Programmet kan f.eks. kjøres ved å åpne repoet i inteliJ, og å kjøre OnionMain filen. Jeg skulle tro at den også fungerer greit i andre IDE-er, men har ikke testet.
+
 ### Kommunikasjon:  
 Nodene, klienten og serveren kommuniserer med hverandre ved hjelp av sokketprogrammering og datagram. På den ene siden er dette en lettvint løsning som er lett og implementere. I produktet slik det er skrevet idag er alle nodene på samme IP, men programmet er implementert slik at hvis man hadde lagt til IP-en til en annen person som kjører programmet, så burde det gå ann å kommunisere med hans/hennes noder og server. Nedsiden med sokketprogrammering er at de kan få problemer med for lange meldinger. (Se muligheter for forbedring).
 Meldinger starter med et flagg som sier hvilke type melding det er. Flagget består av en byte, og vi bruker enumeratoren MessageMode for å gjøre det mer leselig. De forskjellige flaggene er:  
@@ -85,7 +88,7 @@ Ettersom programmet for øyeblikket ikke kommuniserer med eller blir kommunisert
 Slik det er nå vil serveren og klienten sende ut en request og så vente på svar fra requesten før den sender ut neste. Jeg mener det ville være mer effektivt at klienten og serveren først sender ut alle requestene sine, og så venter på svarene.
 
 ### Legge opp for flere klienter og servere
-Slik programmet er nå kjører alle nodene og klienten+server på samme maskin. Men slik jeg har programmert det bør det ikke være vanskelig å tillate den med å bruke noder på andre maskiner. En måte å gjøre dette på er la brukeren skrive inn hvilke Ip-addresse den vil lete etter noder på, og å la brukeren skrive inn hvilke IP addresse + port den skal bruke når den sender melding til Server. En mer avansert måte hadde hatt et sett med noder som er permanent tilgjenelig på internettet som man kan bruke.
+Slik programmet er nå kjører alle nodene og klienten+server på samme maskin. Men slik jeg har programmert det bør det ikke være vanskelig å tillate den med å bruke og bli brukt av noder og servere på andre maskiner. En måte å gjøre dette på er la brukeren skrive inn hvilke Ip-addresse den vil lete etter noder på, og å la brukeren skrive inn hvilke IP addresse + port den skal bruke når den sender melding til Server. En mer avansert måte hadde hatt et sett med noder og/eller servere som er permanent tilgjengelig på internettet som man kan alltid bruke.
 
 ### Utvide serveren
 Utenom å være en webserver, så kan serveren bli programmert til å gjøre flere andre ting, som å inneholde en database eller kjøre et annet verktøy som man vil kunne kommunisere med anonymt.
