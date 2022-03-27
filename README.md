@@ -5,7 +5,7 @@
 I dette prosjektet ble vi bedt om å implementere en Onion router. Poenget med onion router er at meldingen blir sendt mellom flere forksjellige noder før den når fram til målet sitt. Meldingen blir kryptert en gang for hver node. Når noden dekrypterer meldingen den får, vil den få instrukser over hvor neste node den skal sendes til. Resten av meldingen vil være kryptert, og vil bli dekryptert av neste node. På denne måten vil ikke nodene vite start og slutt node som man kan med http og https. Istedenfor vil nodene bare vite forrige og neste node. Ettersom jeg jobbet alene og ikke hadde kjempelang tid, er produktet mer av et proof of concept enn et polert produkt. Likevel har produktet flere deler av den basice funksjonaliten som man kan ønske av en onion router.
 
 ## Funksjonalitet og oppsett
-Javafilene i programmet kan deles inn i fire hoveddeler:
+### Javafilene i programmet kan deles inn i fire hoveddeler:
 1. Nodeklassene:  
 Det er tre klasser som sender meldinger til hverandre: OnionServer, OnionClient, og OnionNode. OnionClient er klient programmet og er programmet som gjør forespørselene til brukeren. OnionServer er programmet som simulerer en server som brukeren kan koble til. Det er i tillegg serveren som sender forespørsler ut på internettet. OnionNode er nodene som meldingene mellom OnionServer og OnionClient. Det er mange OnionNodes som kjører samtidig, slik at det er mange forskjellige ruter meldingene kan ta.
 2. Foreldreklassene:  
@@ -15,14 +15,15 @@ Mainklassen OnionMain setter opp nodene, og setter så opp klienten og serveren,
 4. Enumeratorklasse:  
 Alle meldingene som blir sendt i produktet starter med en byte som signifiserer hvilke type melding det er. F.eks. nøkkelbytte, serverforespørsel, webforespørsel eller oppdelt svar. MessageNode er en enumerator som gir navn til de forskjellige byte-verdiene. Produktet hadde funket uten denne klassen, men å ha den med gjør at programmene blir lettere å skrive og lese da man ikke trenger å huske hvilken byte-verdi som var server forespørsel og hvilken som var web-forespørsel.  
   
-Kommentarer til diverse deler av produktet:    
-Rom for utvidelse: Selv om produktet bare har en server, en klient og alle noder er på samme IP, har jeg prøvd å programmere slik at man kan legge til flere klienter, servere og noder (bl.a. på andre maskiner) uten noen store endringer i koden. (Se fremtidig arbeid).  
+### Kommentarer til diverse deler av produktet:    
+### Rom for utvidelse:  
+Selv om produktet bare har en server, en klient og alle noder er på samme IP, har jeg prøvd å programmere slik at man kan legge til flere klienter, servere og noder (bl.a. på andre maskiner) uten noen store endringer i koden. (Se fremtidig arbeid).  
   
-Kommunikasjon:  
+### Kommunikasjon:  
 Nodene, klienten og serveren kommuniserer med hverandre ved hjelp av sokketprogrammering og datagram. På den ene siden er dette en lettvint løsning som er lett og implementere. I produktet slik det er skrevet idag er alle nodene på samme IP, men programmet er implementert slik at hvis man hadde lagt til IP-en til en annen person som kjører programmet, så burde det gå ann å kommunisere med hans/hennes noder og server. Nedsiden med sokketprogrammering er at de kan få problemer med for lange meldinger. (Se muligheter for forbedring).
 Meldinger starter med et flagg som sier hvilke type melding det er. Flagget består av en byte, og vi bruker enumeratoren MessageMode for å gjøre det mer leselig. De forskjellige flaggene er:  
 KEY_EXCHANGE: En forespørsel om eller svar med en nodes offentlige nøkkel  
-FORWARD_ON_NETWORK: Sier til serveren at den skal brukes som echo server. Er også default flagg hvis ikke andre flagg er relevante.  
+FORWARD_ON_NETWORK: Sier til serveren at den skal brukes som echo server. Er også default flagg hvis ikke andre flagg er relevante. Alle meldinger til noder er FORWARD_ON_NETWORK utenom KEY_EXCHANGE meldinger.
 FORWARD_TO_WEB: Sier til serveren at den skal sende forespørselen ut på nettet.  
 SPLIT_RESPONSE: Brukes på forespørseler som er for lange for en melding.  
   
@@ -37,14 +38,24 @@ Flagg + (AESnøkkel) + (Adresse + Payload)
 Flagget gir meldingstypen, Den første parantesen er kryptert med RSA og er AES nøkkelen som man bruker for å dekryptere den andre parantesen. Addressen gir addressen til neste node man skal sende til.  
 En FORWARD_ON_NETWORK eller FORWARD_TO_WEB til en server eller klient har følgende form:
 Flagg + Addresse + payload
-Flagget viser hvilke type forespørsel det er. Addressen er returAddressen responsen skal sendes til (Merk, den sendes ikke direkte, men går første gjennom flere lag med noder.) Payloaden er forespørslen, altså enten det som skal echoes eller url som skal besøkes.
+Flagget viser hvilke type forespørsel det er. Addressen er returAddressen responsen skal sendes til (Merk, den sendes ikke direkte, men går første gjennom flere lag med noder.) Payloaden er forespørslen, altså enten det som skal echoes eller url som skal besøkes.  
+En SPLIT_RESPONSE forespørsel har følgende form:  
+Flagg + delnummer + antdeler + payload  
+Delnummeret brukes til å si hvilket nummer av delene som meldingen er og brukes for å sette sammen meldingen i tilfelle ikke alle meldingene kom fram i samme rekkefølge som de ble sendt. Antdeler brukes til å si hvor mange deler meldingen er splittet opp i. 
 
 
-Kryptering: når det gjelder valg av krypteringsmetoder hadde jeg en tre faktorer som jeg tenkte på:    
+
+### Kryptering: 
+
+Når det gjelder valg av krypteringsmetoder hadde jeg en tre faktorer som jeg tenkte på:    
 1. Hver node-klient forhold må kunne kryptere uten at andre kan lese det. Det vil si at flere noder med samme klient må ikke kunne dekryptere hverandres meldinger. På samme måte må flere klienter med samme node ikke kunne dekryptere hverandres meldinger.
 2. Hvor mulig skal klienter og servere ha ansvar for å velge og huske hvilke noder de vil bruke for å sende meldinger. Slik programmet er nå velger klienten og serveren alle nodene når programmet starter, men nodene er implementert slik at midt i programmet kan en annen klient begynne å bruke nodene som er satt opp på en annen PC. Klienten bør selv kunne velge noder den vil bruke for å sende gjennom. I tillegg bør så mye som mulig av ansvaret til å lagre og bruke en delt hemmelighet ligge hos klienten. Jeg vil ikke ha et scenario hvor en node som blir brukt av mange ulike klienter husker for mange delte hemmeligheter, og er usikker på om noen av klientene er ferdige så dataen til klienten kan slettes.
 3. Ettersom symmetrisk kryptering er fortere enn usymmetrisk, bør mest mulig av kryptering og dekryptering gjør symmetrisk.
-Med disse tre faktorene, landet jeg på følgende løsning: Hver node har sitt eget sett med public og private nøkler (RSA). Når en klient (eller server) har valgt ut hvilke noder den vil bruke, sender den ut en forespørsel til noder om å få nodens offentlige nøkkel. Når en melding skal krypteres, lager man først en symmetrisk AES nøkkel som man krypter meldingen med. Så krypterer man AES nøkkelen med nodens offentlige nøkkel. Når noden får meldingen bruker den sin private nøkkel på å dekryptere AES nøkkelen. Den bruker så den til å dekryptere resten av meldingen.
+Med disse tre faktorene, landet jeg på følgende løsning: Hver node har sitt eget par med public og private nøkkel (RSA). Når en klient (eller server) har valgt ut hvilke noder den vil bruke i starten av programmet, sender den ut en forespørsel til noder om å få nodens offentlige nøkkel. Når en melding skal krypteres, lager man først en symmetrisk AES nøkkel for hver node som man krypter meldingen med. Så krypterer man AES nøkkelen med nodens offentlige nøkkel. Når noden får meldingen bruker den sin private nøkkel på å dekryptere AES nøkkelen. Den bruker så den AES nøkkelen til å dekryptere resten av meldingen.
+
+
+### Routing
+Hver gang en melding sendes fra klient til server eller motsatt, blir det valgt ut 3 tilfeldige noder ut av 10. (Disse tallene kan også endres lett.) Dette vil anonymisere hvor meldinger kommer fra og til ettersom det ikke vil være noe mønster om hvor en node sender medlingen. Svaret vil også ta en annen rute en den det var sendt langs. I tillegg, hvis meldingen splittes opp, vil hver individuelle meldingdel ta sin egen vei gjennom nodene, som gjør det nesten umulig å se hvilken hvor meldingen kommer fra og skal til.
 
 
 
@@ -62,6 +73,16 @@ Hvis man trykker 2 vil man bruke web serveren. Da vil man kunne skrive inn en ur
 Hvis man trykker 3 (eller noe annet enn 1 eller 2) vil klienten avsluttes.  
 
 ## Fremtidig arbeid
+### Mangel på kryptering mellom klient og server
+Slik programmet er skrevet nå, er det ikke noe kryptering mellom klient og server. Det vil si at den siste noden før serveren kan i praksis lese hele meldingen. Dette er selvfølgelig ikke optimalt i program hvor hele poenget er at det skal være anonymt og hemmelig. Dette kan bli fikset relativt lett med å gi både klient og server sitt eget RSA nøkkelpar, og å la dem key-exchange med hverandre i starten av programmet. Å endre på dette er det første jeg hadde endret på hvis jeg hadde hatt mer tid.
+### Problemer med for store meldinger   
+I og med at jeg bruker Datagram, takler den ikke altfor store meldinger. Derfor blir store responser fra werbrequest splittet opp i flere mindre deler. Måten det er implementert på nå er det en byte som representerer hvor mange deler requesten er splittet opp i. Det er da tydelig at hvis responsen er for stor, og meldingen blir splittet opp i flere enn 255 deler, så vil dette gå galt. Å fikse på dette er den andre tingen jeg hadde gjort hvis jeg skulle endre på noe. Dette kunne enten bli gjort ved å ha mer plass til å anngi anntall deler, eller ved å bruke en annen overføringmetode enn Datagram.
+
+### Legge opp for flere klienter og servere
+Slik programmet er nå kjører alle nodene og klienten+server på samme maskin. Men slik jeg har programmert det bør det ikke være vanskelig å tillate den med å bruke noder på andre maskiner. En måte å gjøre dette på er la brukeren skrive inn hvilke Ip-addresse den vil lete etter noder på, og å la brukeren skrive inn hvilke IP addresse + port den skal bruke når den sender melding til Server. En mer avansert måte hadde hatt et sett med noder som er permanent tilgjenelig på internettet som man kan bruke.
+
+### Sette opp egen router.
+Man kunne i teorien la klienten også være en server på localhost (eller legge det ut på internettet). Serveren vil da ta en Url som et JSON object, kjøre det anonymt, og så sende html responsen til nettleseren til brukeren, noe som på den måten lar brukeren bruke internettet anonymt. Dette er nok det vanskeligste ut av ideene til fremtidig arbeid og vil kreve en god del resurser, men det virker mulig.
 
 ## Lenke til Repo
 Lenke til Github repo: https://github.com/biasedLiar/OnionRouting2  
