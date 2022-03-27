@@ -8,12 +8,15 @@ public class OnionMain {
     public static void main(String[] args) throws IOException {
         Scanner in = new Scanner(System.in);
         try {
+            //creates nodes.
             ArrayList<String> nodePorts = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
                 new OnionNode(1251 + i).start();
                 nodePorts.add(1251+i + " 127.0.0.1");
             }
+            //Creates server
             new OnionServer(1250, nodePorts).start();
+            //Creates client
             new OnionClient(8081, 1250 + " 127.0.0.1", nodePorts).start();
         } catch (SocketException e) {
             e.printStackTrace();

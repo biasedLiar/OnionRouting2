@@ -46,28 +46,28 @@ public abstract class OnionParent extends Thread{
     }
 
     public void recieveMessage() throws IOException {
+        //Recieves message and decodes flag
+        //receives message
         DatagramPacket packet = new DatagramPacket(buf2, buf2.length);
         socket.receive(packet);
         msgBytes = packet.getData();
-
         msgBytes = Arrays.copyOfRange(msgBytes, 0, packet.getLength());
+        //Sets flag
         mode = MessageMode.valueOf(msgBytes[0]);
         msgBytes = Arrays.copyOfRange(msgBytes, 1, msgBytes.length);
         msg = new String(msgBytes);
-        //unless specified otherwise, the response will be sent back;
-
+        //unless specified otherwise, the response will be sent to where message was sent from;
         address = packet.getAddress();
         port = packet.getPort();
         setSocketString();
-
-        //System.out.println("Node recieved message");
     }
 
     public void sendMessage() throws IOException {
+        //Sets port and address from target string
         setTargetFromSocketString();
+        //Sends message
         buf = msgBytes;
         System.out.println("Message sent from " + myPort + " to " + port);
-        //System.out.println("MEssage is " + msgBytes.length + " at clientside.");
         DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
         socket.send(packet);
 
@@ -81,8 +81,10 @@ public abstract class OnionParent extends Thread{
         return socketString.split(" ")[1];
     }
     public void setTargetFromSocketString(){
+        //Gets the port from target string
         port = getPort(targetSocketString);
         try {
+            //Gets the address from target string
             address = InetAddress.getByName(getAddress(targetSocketString));
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -94,6 +96,7 @@ public abstract class OnionParent extends Thread{
     }
 
     public int byteToInt(byte b){
+        //Turns a byte into a int between 0 and 255
         int n = b;
         if (n<0){
             n+=256;
@@ -102,11 +105,13 @@ public abstract class OnionParent extends Thread{
     }
 
     public void addModeToMessage(MessageMode mode){
+        //Sets the flag to front of message
         byte[] modeByte = {mode.getValue()};
         addToFrontOfMessage(modeByte);
     }
 
     public void addToFrontOfMessage(byte[] newBytes){
+        //Adds a byte[] to the front of the message
         byte[] tempBytes = new byte[newBytes.length + msgBytes.length];
         for (int i = 0; i < newBytes.length; i++) {
             tempBytes[i] = newBytes[i];
@@ -118,21 +123,25 @@ public abstract class OnionParent extends Thread{
     }
 
 
-    public void calculatePort(){
+    public void calculateSocketString(){
+        //Calculates port and address from first 6 bytes of msgbytes
+        //Calculates port
         port = byteToInt(msgBytes[0])*256 + byteToInt(msgBytes[1]);
         String addressString = "";
         addressString += byteToInt(msgBytes[2]);
         for (int i = 0; i < 3; i++) {
             addressString += "." +  byteToInt(msgBytes[3+i]);
         }
+        //Calculates address
         try {
             address = InetAddress.getByName(addressString);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        //Sets the port and address to socketString
         setSocketString();
+        //Removes the 6 bytes used from message
         msgBytes = Arrays.copyOfRange(msgBytes, 6, msgBytes.length);
-
         msg = new String(msgBytes);
     }
 

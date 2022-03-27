@@ -14,12 +14,13 @@ public class OnionNode extends OnionParent{
 
     public OnionNode(int port) throws SocketException {
         super(port);
+        //Create keypair upon creation
         createKeys();
     }
 
     public void createKeys(){
+        //Creates keypair
         //Source: https://www.tutorialspoint.com/java_cryptography/java_cryptography_quick_guide.htm
-
         KeyPairGenerator keyPairGen = null;
         try {
             keyPairGen = KeyPairGenerator.getInstance("RSA");
@@ -31,34 +32,21 @@ public class OnionNode extends OnionParent{
     }
 
     public void handleData() throws UnknownHostException, NoSuchAlgorithmException {
-
-
-
-        //System.out.println("encrypted message: " + encryptedMsg + "\nEnd encrypted");
+        //Decides how and to who the response should be
         if (mode == MessageMode.KEY_EXCHANGE){
             //Exchange keys
             PublicKey publicKey = pair.getPublic();
+            //Turns the public key into a byte[]
             String modulus = String.valueOf(((RSAPublicKey) publicKey).getModulus());
             String exponent = String.valueOf(((RSAPublicKey) publicKey).getPublicExponent());
-
             msg = modulus + "\n" + exponent;
             msgBytes = msg.getBytes();
+            //Selects flag
             addModeToMessage(MessageMode.KEY_EXCHANGE);
 
-            //System.out.println("client:\nModulus: " +  String.valueOf(modulus) + "\nExponent: " +  String.valueOf(exponent));
-
-
-
-        } else if (mode == MessageMode.FORWARD_ON_NETWORK){
-            //Forward message
-            //address = InetAddress.getByName(splitMessage[1]);
-            //System.out.println("Starting decrypting");
-            //msgBytes = Arrays.copyOfRange(msgBytes, 1, msgBytes.length);
-            //System.out.println(msgBytes.length);
-            decryptData(msgBytes);
-            //System.out.println("The message is: \n" + new String(msgBytes) + "\nEnd off message.");
         } else{
-
+            //Otherwise, the node decodes and forwards the message
+            decryptData(msgBytes);
         }
 
     }
@@ -66,23 +54,21 @@ public class OnionNode extends OnionParent{
 
 
     public void decryptData(byte[] encryptedBytes){
+        //decodes message that is to be forwarded
         try {
+            //Uses private RSA key to decode AES key
             byte[] rsaEncodedAesKey = Arrays.copyOfRange(msgBytes, 0, 256);
             msgBytes = Arrays.copyOfRange(msgBytes, 256, msgBytes.length);
-
             rsaCipher.init(Cipher.DECRYPT_MODE, pair.getPrivate());
             byte[] aesBytes = rsaCipher.doFinal(rsaEncodedAesKey);
-
             //https://www.baeldung.com/java-secret-key-to-string
             SecretKey secretKey = new SecretKeySpec(aesBytes, 0, aesBytes.length, "AES");
+            //Uses AES key to decode rest of message
             aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
             msgBytes = aesCipher.doFinal(msgBytes);
-            if (mode == MessageMode.FORWARD_ON_NETWORK){
+            //Calculates where to forward the message to
+            calculateSocketString();
 
-                calculatePort();
-            } else if(mode == MessageMode.FORWARD_TO_WEB){
-                System.out.println("TODO: implement this function");
-            }
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
@@ -94,24 +80,21 @@ public class OnionNode extends OnionParent{
     }
 
     public void run(){
+        //Eventloop of program
         try {
 
             while (true){
+                //recieves the message
                 recieveMessage();
-
+                //handles the message
                 handleData();
-                //System.out.println("Now sending message from node");
+                //forwards/replies to the message
                 sendMessage();
-
-
             }
 
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-
-
-
         socket.close();
     }
 }
